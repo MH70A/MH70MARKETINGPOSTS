@@ -667,6 +667,7 @@
             </div>
         </section>
 
+        <!-- Dynamic News Section Connected to Decap CMS -->
         <section id="news" class="py-24 relative overflow-hidden bg-slate-900/10 border-t border-white/5 scroll-mt-24">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
                 <div class="flex flex-col md:flex-row justify-between items-end mb-12">
@@ -676,42 +677,13 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <article class="group cursor-pointer">
-                        <div class="relative overflow-hidden rounded-2xl mb-4 aspect-video bg-brand-card">
-                            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/80 to-transparent z-10"></div>
-                            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=500&q=70&format=webp" alt="MH70 Marketing Training Infrastructure Expansion in Muharraq" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        </div>
-                        <div class="text-brand-muted text-sm mb-2 flex items-center gap-2">
-                            <i class="far fa-calendar"></i> May 15, 2025
-                        </div>
-                        <h3 class="text-xl font-bold mb-2 group-hover:text-brand-accent transition-colors">Expansion of Training Infrastructure</h3>
-                        <p class="text-brand-muted text-sm line-clamp-2">MH70 Marketing announces modern facility improvements to accommodate larger corporate cohorts in Muharraq.</p>
-                    </article>
-
-                    <article class="group cursor-pointer">
-                        <div class="relative overflow-hidden rounded-2xl mb-4 aspect-video bg-brand-card">
-                            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/80 to-transparent z-10"></div>
-                            <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=500&q=70&format=webp" alt="Cross-Border Educational Synergies in Gulf Countries and Bahrain" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        </div>
-                        <div class="text-brand-muted text-sm mb-2 flex items-center gap-2">
-                            <i class="far fa-calendar"></i> January 10, 2025
-                        </div>
-                        <h3 class="text-xl font-bold mb-2 group-hover:text-brand-accent transition-colors">Cross-Border Educational Synergies</h3>
-                        <p class="text-brand-muted text-sm line-clamp-2">Connecting strategic partners in Gulf countries with local product distribution campaigns in Bahrain.</p>
-                    </article>
-
-                    <article class="group cursor-pointer">
-                        <div class="relative overflow-hidden rounded-2xl mb-4 aspect-video bg-brand-card">
-                            <div class="absolute inset-0 bg-gradient-to-t from-brand-dark/80 to-transparent z-10"></div>
-                            <img src="https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=500&q=70&format=webp" alt="MH70 Marketing WLL Bahrain Official Launch Announcement" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                        </div>
-                        <div class="text-brand-muted text-sm mb-2 flex items-center gap-2">
-                            <i class="far fa-calendar"></i> October 15, 2024
-                        </div>
-                        <h3 class="text-xl font-bold mb-2 group-hover:text-brand-accent transition-colors">Official Operations Launch</h3>
-                        <p class="text-brand-muted text-sm line-clamp-2">Following our official establishment in October 2024, corporate activities kicked off securely across Bahrain.</p>
-                    </article>
+                <!-- Dynamic Container for Articles -->
+                <div id="dynamic-news-container" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Loading State -->
+                    <div class="col-span-3 text-center py-12 text-brand-muted">
+                        <i class="fas fa-spinner fa-spin text-2xl mb-2 text-brand-accent"></i>
+                        <p class="text-sm">Loading latest updates...</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -991,6 +963,126 @@
           }
         });
       }
+    </script>
+
+    <!-- Script to Dynamically Fetch and Display CMS News Articles -->
+    <script>
+        async function fetchDecapNews() {
+            const container = document.getElementById('dynamic-news-container');
+            const repoOwner = 'MH70A';
+            const repoName = 'MH70MARKETINGPOSTS';
+            
+            // Fallback hardcoded posts in case GitHub API limit is reached or no posts exist
+            const fallbackPosts = [
+                {
+                    title: "Expansion of Training Infrastructure",
+                    date: "May 15, 2025",
+                    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=500&q=70&format=webp",
+                    summary: "MH70 Marketing announces modern facility improvements to accommodate larger corporate cohorts in Muharraq."
+                },
+                {
+                    title: "Cross-Border Educational Synergies",
+                    date: "January 10, 2025",
+                    image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&w=500&q=70&format=webp",
+                    summary: "Connecting strategic partners in Gulf countries with local product distribution campaigns in Bahrain."
+                },
+                {
+                    title: "Official Operations Launch",
+                    date: "October 15, 2024",
+                    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=500&q=70&format=webp",
+                    summary: "Following our official establishment in October 2024, corporate activities kicked off securely across Bahrain."
+                }
+            ];
+
+            try {
+                // Fetch the list of markdown files from GitHub repository
+                const res = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/blog`);
+                
+                if (!res.ok) throw new Error('Could not fetch blog contents from GitHub');
+                
+                const files = await res.json();
+                
+                // Filter only markdown or text files
+                const postFiles = files.filter(f => f.name.endsWith('.md') || f.name.endsWith('.markdown'));
+
+                if (!postFiles || postFiles.length === 0) {
+                    renderPosts(fallbackPosts);
+                    return;
+                }
+
+                const fetchedPosts = [];
+
+                // Read content of each post file
+                for (const file of postFiles.reverse()) {
+                    try {
+                        const contentRes = await fetch(file.download_url);
+                        const rawText = await contentRes.text();
+
+                        // Parse Frontmatter fields
+                        const titleMatch = rawText.match(/title:\s*["']?(.*?)["']?\n/i);
+                        const dateMatch = rawText.match(/date:\s*["']?(.*?)["']?\n/i);
+                        const imageMatch = rawText.match(/image:\s*["']?(.*?)["']?\n/i);
+
+                        // Extract clean body text (excluding frontmatter) for short snippet
+                        const bodyContent = rawText.replace(/---[\s\S]*?---/, '').trim();
+                        const snippet = bodyContent.replace(/[#*`\\]/g, '').substring(0, 140) + '...';
+
+                        const title = titleMatch ? titleMatch[1].trim() : file.name;
+                        const rawDate = dateMatch ? dateMatch[1].trim() : '';
+                        
+                        let formattedDate = 'Recently Published';
+                        if (rawDate) {
+                            const parsedDate = new Date(rawDate);
+                            if (!isNaN(parsedDate)) {
+                                formattedDate = parsedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                            }
+                        }
+
+                        const image = imageMatch && imageMatch[1].trim() 
+                            ? imageMatch[1].replace(/['"]/g, '') 
+                            : 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=500&q=70&format=webp';
+
+                        fetchedPosts.push({
+                            title: title,
+                            date: formattedDate,
+                            image: image,
+                            summary: snippet
+                        });
+                    } catch (e) {
+                        console.warn("Failed parsing file:", file.name, e);
+                    }
+                }
+
+                if (fetchedPosts.length > 0) {
+                    renderPosts(fetchedPosts);
+                } else {
+                    renderPosts(fallbackPosts);
+                }
+
+            } catch (err) {
+                console.error("Using fallback news due to fetch error:", err);
+                renderPosts(fallbackPosts);
+            }
+
+            function renderPosts(posts) {
+                container.innerHTML = posts.map(post => `
+                    <article class="group cursor-pointer bg-brand-card/30 rounded-2xl p-4 border border-white/5 hover:border-brand-accent/30 transition-all flex flex-col justify-between">
+                        <div>
+                            <div class="relative overflow-hidden rounded-xl mb-4 aspect-video bg-brand-dark">
+                                <img src="${post.image}" alt="${post.title}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            </div>
+                            <div class="text-brand-muted text-xs mb-2 flex items-center gap-2">
+                                <i class="far fa-calendar text-brand-accent"></i> ${post.date}
+                            </div>
+                            <h3 class="text-lg font-bold mb-2 text-white group-hover:text-brand-accent transition-colors leading-snug">${post.title}</h3>
+                            <p class="text-brand-muted text-xs leading-relaxed line-clamp-3">${post.summary}</p>
+                        </div>
+                    </article>
+                `).join('');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchDecapNews);
     </script>
 
     <script>
