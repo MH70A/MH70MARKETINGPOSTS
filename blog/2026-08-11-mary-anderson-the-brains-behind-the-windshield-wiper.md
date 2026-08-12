@@ -37,14 +37,12 @@ Though she never profited financially from her creation, Mary Anderson’s keen 
 
 ## What Do You Think?
 
-1. Have you ever noticed a everyday problem that made you think, "There must be a better way"? What was it?
+1. Have you ever noticed an everyday problem that made you think, "There must be a better way"? What was it?
 2. Do you think companies today are quicker to accept revolutionary ideas than they were in 1903, or do great inventions still get rejected early on?
 3. If you could add one modern upgrade to traditional windshield wipers, what would it be?
 
 > Want to learn more or stay connected with us?
 >
 > [Click here to join our Telegram channel or contact us directly](https://t.me/mh70academy)
-
-
-
+>
 >
