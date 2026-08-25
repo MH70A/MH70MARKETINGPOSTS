@@ -178,6 +178,9 @@
         body > .goog-te-menu-frame, .goog-te-menu-frame { max-width: 96vw !important; left: 2vw !important; right: 2vw !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; border-radius: 12px !important; }
         .news-btn { background: #38bdf8; color: #0f172a; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
         .news-btn:hover { background: #7dd3fc; }
+        /* Skeleton Animation */
+        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
+        .skeleton { animation: pulse 1.5s infinite ease-in-out; background: rgba(255, 255, 255, 0.05); }
     </style>
 </head>
 <body class="antialiased">
@@ -678,7 +681,7 @@
             </div>
         </section>
 
-        <!-- Dynamic News & Milestones Section (Upgraded Case-Insensitive Fetcher) -->
+        <!-- Dynamic News & Milestones Section -->
         <section id="news" class="py-24 relative overflow-hidden bg-slate-900/10 border-t border-white/5 scroll-mt-24">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
                 <div class="flex flex-col md:flex-row justify-between items-end mb-12">
@@ -689,7 +692,7 @@
                 </div>
 
                 <div id="news-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Dynamic Articles will be safely rendered here -->
+                    <!-- Skeleton Loaders rendered dynamically by JavaScript -->
                 </div>
 
                 <div class="text-center mt-12">
@@ -853,6 +856,7 @@
         </div>
     </footer>
 
+    <!-- Service Request Sidebar Modal -->
     <div id="cart-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden opacity-0 transition-opacity duration-300" onclick="toggleCart()"></div>
     <div id="cart-sidebar" class="cart-overlay fixed top-0 right-0 h-full w-full sm:w-[420px] bg-brand-card border-l border-white/10 z-[70] shadow-2xl hidden flex-col">
         <div class="p-6 border-b border-white/10 flex items-center justify-between">
@@ -866,6 +870,24 @@
         </div>
     </div>
 
+    <!-- Interactive Quiz Modal Window -->
+    <div id="quiz-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeQuizModal()"></div>
+        <div class="relative bg-brand-card border border-white/10 rounded-3xl p-6 md:p-8 max-w-lg w-full text-sm leading-relaxed shadow-2xl">
+            <button onclick="closeQuizModal()" class="absolute top-4 right-4 text-brand-muted hover:text-white" aria-label="Close Quiz Modal"><i class="fas fa-times text-xl"></i></button>
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 rounded-2xl bg-brand-accent/10 flex items-center justify-center mx-auto mb-3"><i class="fas fa-lightbulb text-2xl text-brand-accent"></i></div>
+                <h3 id="quiz-modal-title" class="text-xl font-bold text-white mb-2">Interactive Quiz</h3>
+                <p class="text-xs text-brand-muted">Test your comprehension for this article topic below.</p>
+            </div>
+            <div id="quiz-modal-body" class="space-y-4 text-brand-muted">
+                <!-- Quiz questions injected here -->
+            </div>
+            <button onclick="closeQuizModal()" class="w-full mt-6 py-3 rounded-xl bg-brand-accent text-brand-dark font-bold hover:bg-amber-400 transition-all">Close Quiz</button>
+        </div>
+    </div>
+
+    <!-- Inquiry Checkout Modal -->
     <div id="checkout-modal" class="fixed inset-0 z-[80] hidden items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeCheckout()"></div>
         <div class="relative bg-brand-card border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl transform scale-95 opacity-0 transition-all duration-300" id="checkout-modal-content">
@@ -905,6 +927,7 @@
         </div>
     </div>
 
+    <!-- Legal Modals -->
     <div id="terms-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="toggleLegalModal('terms-modal')"></div>
         <div class="relative bg-brand-card border border-white/10 rounded-3xl p-6 md:p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto text-sm leading-relaxed shadow-2xl">
@@ -951,6 +974,7 @@
         </div>
     </div>
 
+    <!-- Google Translate Script -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({ 
@@ -975,10 +999,14 @@
       }
     </script>
 
+    <!-- Core Interactive Application Script -->
     <script>
         let cart = [];
         let allArticles = [];
         let visibleCount = 6;
+        const CACHE_KEY = 'mh70_articles_cache';
+        const CACHE_TIME_KEY = 'mh70_articles_cache_time';
+        const CACHE_DURATION = 3600000; // 1 hour in milliseconds
 
         function escapeHTML(str) {
             return str ? str.replace(/[&<>'"]/g, 
@@ -1071,28 +1099,95 @@
             }).catch((error) => alert("Submission error: " + error));
         }
 
-        /* Upgraded Case-Insensitive Multi-Route Engine */
+        /* Improved Text-to-Speech Engine with Automatic Language Detector */
         function speakText(index) {
             if ('speechSynthesis' in window && allArticles[index]) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(allArticles[index].body);
+                const isArabic = /[\u0600-\u06FF]/.test(allArticles[index].body);
+                utterance.lang = isArabic ? 'ar-SA' : 'en-US';
                 window.speechSynthesis.speak(utterance);
             } else {
                 alert('Audio speech is not supported in your browser.');
             }
         }
 
+        /* Interactive Quiz Modal Launch Engine */
         function startQuiz(index) {
             if (allArticles[index]) {
-                alert(`Generating Interactive Quiz for: "${allArticles[index].title}"...\n\n(Feature active via Gemini API)`);
+                const modal = document.getElementById('quiz-modal');
+                const titleEl = document.getElementById('quiz-modal-title');
+                const bodyEl = document.getElementById('quiz-modal-body');
+                
+                titleEl.textContent = `Quiz: ${allArticles[index].title}`;
+                bodyEl.innerHTML = `
+                    <div class="glass p-4 rounded-xl border border-white/10 mb-3">
+                        <p class="text-white font-semibold mb-2">Q1: What is the main key takeaway of this article?</p>
+                        <div class="space-y-2 text-xs">
+                            <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q1" value="1"> Operational growth and development in Bahrain</label>
+                            <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q1" value="2"> Technical specifications</label>
+                        </div>
+                    </div>
+                    <div class="glass p-4 rounded-xl border border-white/10">
+                        <p class="text-white font-semibold mb-2">Q2: Does this article apply to corporate training activities?</p>
+                        <div class="space-y-2 text-xs">
+                            <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q2" value="yes"> Yes, aligned with MH70 Marketing goals</label>
+                            <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q2" value="no"> No</label>
+                        </div>
+                    </div>
+                `;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
             }
         }
 
+        function closeQuizModal() {
+            const modal = document.getElementById('quiz-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function renderSkeletons() {
+            const grid = document.getElementById('news-grid');
+            if (!grid) return;
+            grid.innerHTML = Array(3).fill(0).map(() => `
+                <div class="glass rounded-2xl overflow-hidden border border-white/10 p-4 space-y-4">
+                    <div class="w-full h-40 rounded-xl skeleton"></div>
+                    <div class="h-6 w-3/4 rounded skeleton"></div>
+                    <div class="h-4 w-full rounded skeleton"></div>
+                    <div class="h-4 w-2/3 rounded skeleton"></div>
+                    <div class="flex gap-2 pt-2 border-t border-white/10">
+                        <div class="h-8 w-20 rounded skeleton"></div>
+                        <div class="h-8 w-20 rounded skeleton"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        /* Fully Fortified Smart-Cached Article Engine */
         async function fetchArticles() {
+            const grid = document.getElementById('news-grid');
+            renderSkeletons();
+
+            // Check Browser Cache
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+            const now = Date.now();
+
+            if (cachedData && cachedTime && (now - cachedTime < CACHE_DURATION)) {
+                try {
+                    allArticles = JSON.parse(cachedData);
+                    renderArticles();
+                    return;
+                } catch(e) {
+                    localStorage.removeItem(CACHE_KEY);
+                }
+            }
+
             const paths = [
-                'https://api.github.com/repos/MH70marketing/mh70marketingposts/contents/blog',
-                'https://api.github.com/repos/MH70marketing/MH70MARKETINGPOSTS/contents/blog',
-                'https://api.github.com/repos/MH70marketing/mh70marketingposts/contents/content/news'
+                'https://api.github.com/repos/MH70A/MH70MARKETINGPOSTS/contents/blog',
+                'https://api.github.com/repos/MH70A/MH70MARKETINGPOSTS/contents/content/news',
+                'https://api.github.com/repos/MH70marketing/MH70MARKETINGPOSTS/contents/blog'
             ];
 
             let files = [];
@@ -1116,27 +1211,40 @@
 
                 allArticles = [];
                 for (let file of markdownFiles) {
-                    const res = await fetch(file.download_url);
-                    const text = await res.text();
-                    
-                    const titleMatch = text.match(/title:\s*"(.*?)"/)||[null, file.name.replace('.md','')];
-                    const imageMatch = text.match(/image:\s*"(.*?)"/);
-                    const bodyText = text.replace(/---[\s\S]*?---/, '').trim();
+                    try {
+                        const res = await fetch(file.download_url);
+                        const text = await res.text();
+                        
+                        const decodedFileName = decodeURIComponent(file.name.replace('.md',''));
+                        const titleMatch = text.match(/title:\s*"(.*?)"/)||[null, decodedFileName];
+                        const imageMatch = text.match(/image:\s*"(.*?)"/);
+                        const bodyText = text.replace(/---[\s\S]*?---/, '').trim();
 
-                    let imageUrl = 'https://picsum.photos/seed/' + encodeURIComponent(file.name) + '/400/250';
-                    if (imageMatch && imageMatch[1]) {
-                        imageUrl = imageMatch[1].startsWith('http') ? imageMatch[1] : 'https://raw.githubusercontent.com/MH70marketing/mh70marketingposts/main' + imageMatch[1];
+                        let imageUrl = 'https://picsum.photos/seed/' + encodeURIComponent(file.name) + '/400/250';
+                        if (imageMatch && imageMatch[1]) {
+                            imageUrl = imageMatch[1].startsWith('http') ? imageMatch[1] : 'https://raw.githubusercontent.com/MH70A/MH70MARKETINGPOSTS/main' + imageMatch[1];
+                        }
+
+                        allArticles.push({
+                            title: titleMatch[1],
+                            image: imageUrl,
+                            body: bodyText
+                        });
+                    } catch (singleErr) {
+                        console.error("Error reading single article file:", singleErr);
                     }
-
-                    allArticles.push({
-                        title: titleMatch[1],
-                        image: imageUrl,
-                        body: bodyText
-                    });
                 }
+
+                // Save to Cache
+                if (allArticles.length > 0) {
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(allArticles));
+                    localStorage.setItem(CACHE_TIME_KEY, now.toString());
+                }
+
                 renderArticles();
             } catch (err) {
                 console.error("Error loading news:", err);
+                if (grid) grid.innerHTML = `<p class="text-brand-muted text-center col-span-3">Unable to load news at this moment.</p>`;
             }
         }
 
