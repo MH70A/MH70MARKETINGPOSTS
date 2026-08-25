@@ -1,6 +1,6 @@
 ---
 title: Do you know the difference between WHEN & WHILE?
-date: 2026-08-25T05:56:00.000+03:00
+date: 2026-08-24T05:56:00.000+03:00
 image: /images/uploads/لقطة-شاشة-2026-06-14-194657.png
 ---
 "When" vs. "While": Mastering the Time Connectors! 🕰️✍️\*\*
