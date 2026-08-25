@@ -678,7 +678,7 @@
             </div>
         </section>
 
-        <!-- Dynamic News & Milestones Section (Upgraded Multi-Path Dynamic Engine) -->
+        <!-- Dynamic News & Milestones Section (Upgraded Case-Insensitive Fetcher) -->
         <section id="news" class="py-24 relative overflow-hidden bg-slate-900/10 border-t border-white/5 scroll-mt-24">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
                 <div class="flex flex-col md:flex-row justify-between items-end mb-12">
@@ -1071,7 +1071,7 @@
             }).catch((error) => alert("Submission error: " + error));
         }
 
-        /* Upgraded Dynamic News Fetcher Engine with Fallback Paths */
+        /* Upgraded Case-Insensitive Multi-Route Engine */
         function speakText(index) {
             if ('speechSynthesis' in window && allArticles[index]) {
                 window.speechSynthesis.cancel();
@@ -1090,8 +1090,9 @@
 
         async function fetchArticles() {
             const paths = [
+                'https://api.github.com/repos/MH70marketing/mh70marketingposts/contents/blog',
                 'https://api.github.com/repos/MH70marketing/MH70MARKETINGPOSTS/contents/blog',
-                'https://api.github.com/repos/MH70marketing/MH70MARKETINGPOSTS/contents/content/news'
+                'https://api.github.com/repos/MH70marketing/mh70marketingposts/contents/content/news'
             ];
 
             let files = [];
@@ -1099,8 +1100,11 @@
                 try {
                     const response = await fetch(path);
                     if (response.ok) {
-                        files = await response.json();
-                        if (Array.isArray(files) && files.length > 0) break;
+                        const data = await response.json();
+                        if (Array.isArray(data) && data.length > 0) {
+                            files = data;
+                            break;
+                        }
                     }
                 } catch (e) {
                     console.log("Path attempt failed:", path);
@@ -1110,6 +1114,7 @@
             try {
                 const markdownFiles = files.filter(f => f.name && f.name.endsWith('.md'));
 
+                allArticles = [];
                 for (let file of markdownFiles) {
                     const res = await fetch(file.download_url);
                     const text = await res.text();
@@ -1120,7 +1125,7 @@
 
                     let imageUrl = 'https://picsum.photos/seed/' + encodeURIComponent(file.name) + '/400/250';
                     if (imageMatch && imageMatch[1]) {
-                        imageUrl = imageMatch[1].startsWith('http') ? imageMatch[1] : 'https://raw.githubusercontent.com/MH70marketing/MH70MARKETINGPOSTS/main' + imageMatch[1];
+                        imageUrl = imageMatch[1].startsWith('http') ? imageMatch[1] : 'https://raw.githubusercontent.com/MH70marketing/mh70marketingposts/main' + imageMatch[1];
                     }
 
                     allArticles.push({
