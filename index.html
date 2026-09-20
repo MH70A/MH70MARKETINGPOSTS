@@ -176,8 +176,10 @@
         .goog-te-gadget-icon { display: none !important; }
         .goog-te-banner-frame { display: none !important; }
         body > .goog-te-menu-frame, .goog-te-menu-frame { max-width: 96vw !important; left: 2vw !important; right: 2vw !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; border-radius: 12px !important; }
-        .news-btn { background: #38bdf8; color: #0f172a; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
+        .news-btn { background: #38bdf8; color: #0f172a; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
         .news-btn:hover { background: #7dd3fc; }
+        .news-btn-primary { background: #fbbf24; color: #0f172a; }
+        .news-btn-primary:hover { background: #fde047; }
         @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
         .skeleton { animation: pulse 1.5s infinite ease-in-out; background: rgba(255, 255, 255, 0.05); }
     </style>
@@ -691,11 +693,11 @@
                 </div>
 
                 <div id="news-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Skeleton Loaders rendered dynamically by JavaScript -->
+                    <!-- Dynamic Articles -->
                 </div>
 
                 <div class="text-center mt-12">
-                    <button id="load-more-btn" class="news-btn px-6 py-3 rounded-xl text-sm" style="display: none;" onclick="loadMoreArticles()">Load More Articles / عرض المزيد</button>
+                    <button id="load-more-btn" class="news-btn news-btn-primary px-6 py-3 rounded-xl text-sm" style="display: none;" onclick="loadMoreArticles()">Load More Articles / عرض المزيد</button>
                 </div>
             </div>
         </section>
@@ -869,6 +871,20 @@
         </div>
     </div>
 
+    <!-- Full Article Reader Modal Window -->
+    <div id="article-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeArticleModal()"></div>
+        <div class="relative bg-brand-card border border-white/10 rounded-3xl p-6 md:p-8 max-w-2xl w-full max-h-[85vh] overflow-y-auto text-sm leading-relaxed shadow-2xl">
+            <button onclick="closeArticleModal()" class="absolute top-4 right-4 text-brand-muted hover:text-white" aria-label="Close Article Modal"><i class="fas fa-times text-xl"></i></button>
+            <div id="article-modal-content" class="space-y-4">
+                <!-- Full article content will be injected here -->
+            </div>
+            <div class="mt-8 pt-4 border-t border-white/10 flex gap-3 justify-end" id="article-modal-actions">
+                <!-- Action buttons -->
+            </div>
+        </div>
+    </div>
+
     <!-- Interactive Quiz Modal Window -->
     <div id="quiz-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
         <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeQuizModal()"></div>
@@ -998,14 +1014,14 @@
       }
     </script>
 
-    <!-- Core Interactive Application Script (Red-Team Fortified) -->
+    <!-- Core Interactive Application Script (With Full Article Reader Window & Direct GitHub Dynamic Sync) -->
     <script>
         let cart = [];
         let allArticles = [];
         let visibleCount = 6;
-        const CACHE_KEY = 'mh70_articles_cache';
-        const CACHE_TIME_KEY = 'mh70_articles_cache_time';
-        const CACHE_DURATION = 3600000; // 1 hour in milliseconds
+        const CACHE_KEY = 'mh70_articles_cache_v2';
+        const CACHE_TIME_KEY = 'mh70_articles_cache_time_v2';
+        const CACHE_DURATION = 1800000; // 30 minutes in milliseconds
 
         /* Strict Sanitization Helper (Anti-XSS Protection) */
         function escapeHTML(str) {
@@ -1100,10 +1116,10 @@
             }).catch((error) => alert("Submission error: " + error));
         }
 
-        /* Improved Text-to-Speech Engine with Automatic Language Detector & Audio Cancel */
+        /* Improved Text-to-Speech Engine */
         function speakText(index) {
             if ('speechSynthesis' in window && allArticles[index]) {
-                window.speechSynthesis.cancel(); // Prevent audio overlap
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(allArticles[index].body);
                 const isArabic = /[\u0600-\u06FF]/.test(allArticles[index].body);
                 utterance.lang = isArabic ? 'ar-SA' : 'en-US';
@@ -1113,7 +1129,42 @@
             }
         }
 
-        /* Red-Team Sanitized Multi-Skill Quiz Engine */
+        /* Full Article Modal Reader Engine */
+        function readFullArticle(index) {
+            if (!allArticles[index]) return;
+            const art = allArticles[index];
+            const isArabic = /[\u0600-\u06FF]/.test(art.body);
+            const modal = document.getElementById('article-modal');
+            const contentEl = document.getElementById('article-modal-content');
+            const actionsEl = document.getElementById('article-modal-actions');
+
+            contentEl.innerHTML = `
+                <div class="relative overflow-hidden rounded-2xl mb-6 aspect-video bg-brand-card">
+                    <img src="${escapeHTML(art.image)}" alt="Article Cover" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://mh70marketing.com/book-cover.webp';">
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-4" dir="${isArabic ? 'rtl' : 'ltr'}">${escapeHTML(art.title)}</h2>
+                <div class="text-brand-muted leading-relaxed space-y-3 max-h-[40vh] overflow-y-auto pr-2" dir="${isArabic ? 'rtl' : 'ltr'}">
+                    ${escapeHTML(art.body).replace(/\n/g, '<br>')}
+                </div>
+            `;
+
+            actionsEl.innerHTML = `
+                <button class="news-btn" onclick="speakText(${index})">Listen 🎧</button>
+                <button class="news-btn" onclick="closeArticleModal(); startQuiz(${index});">Quiz 💡</button>
+                <button class="news-btn news-btn-primary" onclick="closeArticleModal()">Close / إغلاق</button>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeArticleModal() {
+            const modal = document.getElementById('article-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        /* Multi-Skill Quiz Engine */
         function startQuiz(index) {
             if (!allArticles[index]) return;
 
@@ -1125,17 +1176,14 @@
 
             titleEl.textContent = `${isArabic ? 'اختبار تفاؤلي' : 'Interactive Quiz'}: ${art.title}`;
 
-            // Clean & parse words and sentences
             const cleanBody = art.body.replace(/[#*`_~]/g, '');
             const sentences = cleanBody.split(/[.!?\n]/).filter(s => s.trim().length > 15);
             const words = cleanBody.split(/\s+/).filter(w => w.length > 5);
 
-            // Question 1: Yes / No Format
             const q1Text = isArabic 
                 ? `هل يتناول هذا المقال بشكل مباشر موضوع: (${art.title})؟` 
                 : `Does this article directly address the topic of: (${art.title})?`;
 
-            // Question 2: Summarization
             const sampleSnippet = sentences.length > 0 ? sentences[0].trim() : (isArabic ? 'الأفكار التنفيذية المطروحة' : 'The practical insights presented');
             const q2Text = isArabic 
                 ? `أي العبارات التالية تعبر عن الفكرة الجوهرية الواردة بالنص؟` 
@@ -1143,7 +1191,6 @@
             const q2Ans1 = `"${sampleSnippet.substring(0, 70)}..."`;
             const q2Ans2 = isArabic ? `فكرة عشوائية غير موجودة بالنص` : `Random idea not mentioned`;
 
-            // Question 3: Vocabulary & Context
             const sampleWord = words.length > 0 ? words[Math.floor(words.length / 2)] : (isArabic ? 'المحتوى' : 'Concept');
             const q3Text = isArabic 
                 ? `ما السياق الذي أثيرت فيه المفردة الكبيرة: (${sampleWord})؟` 
@@ -1151,7 +1198,6 @@
             const q3Ans1 = isArabic ? `سياق داعم ومباشر لربط أفكار الموضوع` : `A supporting context directly related to the main topic`;
             const q3Ans2 = isArabic ? `استخدام هامشي خارج نطاق الفكرة` : `An irrelevant context`;
 
-            // Sanitized Dynamic HTML Output to completely prevent XSS
             bodyEl.innerHTML = `
                 <div class="glass p-4 rounded-xl border border-white/10 mb-3" dir="${isArabic ? 'rtl' : 'ltr'}">
                     <p class="text-white font-semibold mb-2"><i class="fas fa-check-circle text-brand-accent mr-1"></i> Q1 (${isArabic ? 'تأكيد الحقيقة - نعم / لا' : 'Yes / No Fact Check'}): ${escapeHTML(q1Text)}</p>
@@ -1225,27 +1271,10 @@
             return 'https://mh70marketing.com/book-cover.webp';
         }
 
-        /* Exception-Safe Smart-Cached Article Fetch Engine */
+        /* Direct Real-Time GitHub Sync & Article Engine */
         async function fetchArticles() {
             const grid = document.getElementById('news-grid');
             renderSkeletons();
-
-            // Safe LocalStorage Cache Check
-            try {
-                const cachedData = localStorage.getItem(CACHE_KEY);
-                const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
-                const now = Date.now();
-
-                if (cachedData && cachedTime && (now - Number(cachedTime) < CACHE_DURATION)) {
-                    allArticles = JSON.parse(cachedData);
-                    if (Array.isArray(allArticles) && allArticles.length > 0) {
-                        renderArticles();
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.warn("LocalStorage unavailable:", e);
-            }
 
             const paths = [
                 'https://api.github.com/repos/MH70A/MH70MARKETINGPOSTS/contents/blog',
@@ -1256,7 +1285,7 @@
             let files = [];
             for (let path of paths) {
                 try {
-                    const response = await fetch(path);
+                    const response = await fetch(path + '?t=' + Date.now()); // Force fresh fetch bypassing GitHub cache
                     if (response.ok) {
                         const data = await response.json();
                         if (Array.isArray(data) && data.length > 0) {
@@ -1275,7 +1304,7 @@
                 allArticles = [];
                 for (let file of markdownFiles) {
                     try {
-                        const res = await fetch(file.download_url);
+                        const res = await fetch(file.download_url + '?t=' + Date.now());
                         const text = await res.text();
                         
                         const decodedFileName = decodeURIComponent(file.name.replace('.md',''));
@@ -1305,16 +1334,6 @@
                     }
                 }
 
-                // Safe Cache Saving
-                if (allArticles.length > 0) {
-                    try {
-                        localStorage.setItem(CACHE_KEY, JSON.stringify(allArticles));
-                        localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
-                    } catch (storageErr) {
-                        console.warn("Storage quota exceeded:", storageErr);
-                    }
-                }
-
                 renderArticles();
             } catch (err) {
                 console.error("Error loading news:", err);
@@ -1335,17 +1354,18 @@
             const toShow = allArticles.slice(0, visibleCount);
             toShow.forEach((art, index) => {
                 const card = document.createElement('article');
-                card.className = 'glass rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between p-4';
+                card.className = 'glass rounded-2xl overflow-hidden border border-white/10 flex flex-col justify-between p-4 group cursor-pointer hover:border-brand-accent/40 transition-all';
 
                 card.innerHTML = `
-                    <div>
+                    <div onclick="readFullArticle(${index})">
                         <div class="relative overflow-hidden rounded-xl mb-4 aspect-video bg-brand-card">
-                            <img src="${escapeHTML(art.image)}" alt="Article Cover" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://mh70marketing.com/book-cover.webp';">
+                            <img src="${escapeHTML(art.image)}" alt="Article Cover" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.onerror=null;this.src='https://mh70marketing.com/book-cover.webp';">
                         </div>
-                        <h3 class="text-lg font-bold mb-2 text-white" dir="auto">${escapeHTML(art.title)}</h3>
+                        <h3 class="text-lg font-bold mb-2 text-white group-hover:text-brand-accent transition-colors" dir="auto">${escapeHTML(art.title)}</h3>
                         <p class="text-brand-muted text-sm line-clamp-3 mb-4" dir="auto">${escapeHTML(art.body.substring(0, 150))}...</p>
                     </div>
                     <div class="flex gap-2 mt-2 pt-2 border-t border-white/10">
+                        <button class="news-btn news-btn-primary" onclick="readFullArticle(${index})">Read 📖</button>
                         <button class="news-btn" onclick="speakText(${index})">Listen 🎧</button>
                         <button class="news-btn" onclick="startQuiz(${index})">Quiz 💡</button>
                     </div>
