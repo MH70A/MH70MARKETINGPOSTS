@@ -178,7 +178,6 @@
         body > .goog-te-menu-frame, .goog-te-menu-frame { max-width: 96vw !important; left: 2vw !important; right: 2vw !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5) !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; border-radius: 12px !important; }
         .news-btn { background: #38bdf8; color: #0f172a; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; cursor: pointer; transition: all 0.2s; }
         .news-btn:hover { background: #7dd3fc; }
-        /* Skeleton Animation */
         @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
         .skeleton { animation: pulse 1.5s infinite ease-in-out; background: rgba(255, 255, 255, 0.05); }
     </style>
@@ -881,7 +880,7 @@
                 <p class="text-xs text-brand-muted">Test your comprehension for this article topic below.</p>
             </div>
             <div id="quiz-modal-body" class="space-y-4 text-brand-muted">
-                <!-- Quiz questions injected here -->
+                <!-- Quiz questions injected safely here -->
             </div>
             <button onclick="closeQuizModal()" class="w-full mt-6 py-3 rounded-xl bg-brand-accent text-brand-dark font-bold hover:bg-amber-400 transition-all">Close Quiz</button>
         </div>
@@ -999,7 +998,7 @@
       }
     </script>
 
-    <!-- Core Interactive Application Script -->
+    <!-- Core Interactive Application Script (Red-Team Fortified) -->
     <script>
         let cart = [];
         let allArticles = [];
@@ -1008,9 +1007,11 @@
         const CACHE_TIME_KEY = 'mh70_articles_cache_time';
         const CACHE_DURATION = 3600000; // 1 hour in milliseconds
 
+        /* Strict Sanitization Helper (Anti-XSS Protection) */
         function escapeHTML(str) {
-            return str ? str.replace(/[&<>'"]/g, 
-                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)) : '';
+            if (typeof str !== 'string') return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag));
         }
 
         function toggleMobileMenu() { document.getElementById('mobile-menu').classList.toggle('hidden'); }
@@ -1064,7 +1065,7 @@
             }
             container.innerHTML = cart.map((item, index) => `
                 <div class="glass rounded-xl p-4 border border-white/10 flex items-start justify-between">
-                    <div class="flex-1"><h4 class="font-bold text-sm mb-1 text-white">${item.name}</h4><p class="text-xs text-brand-muted">Service Request</p></div>
+                    <div class="flex-1"><h4 class="font-bold text-sm mb-1 text-white">${escapeHTML(item.name)}</h4><p class="text-xs text-brand-muted">Service Request</p></div>
                     <button onclick="removeFromCart(${index})" class="text-brand-muted hover:text-red-400" aria-label="Remove item from inquiry"><i class="fas fa-times text-xs"></i></button>
                 </div>
             `).join('');
@@ -1099,10 +1100,10 @@
             }).catch((error) => alert("Submission error: " + error));
         }
 
-        /* Improved Text-to-Speech Engine with Automatic Language Detector */
+        /* Improved Text-to-Speech Engine with Automatic Language Detector & Audio Cancel */
         function speakText(index) {
             if ('speechSynthesis' in window && allArticles[index]) {
-                window.speechSynthesis.cancel();
+                window.speechSynthesis.cancel(); // Prevent audio overlap
                 const utterance = new SpeechSynthesisUtterance(allArticles[index].body);
                 const isArabic = /[\u0600-\u06FF]/.test(allArticles[index].body);
                 utterance.lang = isArabic ? 'ar-SA' : 'en-US';
@@ -1112,33 +1113,73 @@
             }
         }
 
-        /* Interactive Quiz Modal Launch Engine */
+        /* Red-Team Sanitized Multi-Skill Quiz Engine */
         function startQuiz(index) {
-            if (allArticles[index]) {
-                const modal = document.getElementById('quiz-modal');
-                const titleEl = document.getElementById('quiz-modal-title');
-                const bodyEl = document.getElementById('quiz-modal-body');
-                
-                titleEl.textContent = `Quiz: ${allArticles[index].title}`;
-                bodyEl.innerHTML = `
-                    <div class="glass p-4 rounded-xl border border-white/10 mb-3">
-                        <p class="text-white font-semibold mb-2">Q1: What is the main key takeaway of this article?</p>
-                        <div class="space-y-2 text-xs">
-                            <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q1" value="1"> Operational growth and development in Bahrain</label>
-                            <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q1" value="2"> Technical specifications</label>
-                        </div>
+            if (!allArticles[index]) return;
+
+            const art = allArticles[index];
+            const isArabic = /[\u0600-\u06FF]/.test(art.body);
+            const modal = document.getElementById('quiz-modal');
+            const titleEl = document.getElementById('quiz-modal-title');
+            const bodyEl = document.getElementById('quiz-modal-body');
+
+            titleEl.textContent = `${isArabic ? 'اختبار تفاؤلي' : 'Interactive Quiz'}: ${art.title}`;
+
+            // Clean & parse words and sentences
+            const cleanBody = art.body.replace(/[#*`_~]/g, '');
+            const sentences = cleanBody.split(/[.!?\n]/).filter(s => s.trim().length > 15);
+            const words = cleanBody.split(/\s+/).filter(w => w.length > 5);
+
+            // Question 1: Yes / No Format
+            const q1Text = isArabic 
+                ? `هل يتناول هذا المقال بشكل مباشر موضوع: (${art.title})؟` 
+                : `Does this article directly address the topic of: (${art.title})?`;
+
+            // Question 2: Summarization
+            const sampleSnippet = sentences.length > 0 ? sentences[0].trim() : (isArabic ? 'الأفكار التنفيذية المطروحة' : 'The practical insights presented');
+            const q2Text = isArabic 
+                ? `أي العبارات التالية تعبر عن الفكرة الجوهرية الواردة بالنص؟` 
+                : `Which statement best summarizes the main idea in the text?`;
+            const q2Ans1 = `"${sampleSnippet.substring(0, 70)}..."`;
+            const q2Ans2 = isArabic ? `فكرة عشوائية غير موجودة بالنص` : `Random idea not mentioned`;
+
+            // Question 3: Vocabulary & Context
+            const sampleWord = words.length > 0 ? words[Math.floor(words.length / 2)] : (isArabic ? 'المحتوى' : 'Concept');
+            const q3Text = isArabic 
+                ? `ما السياق الذي أثيرت فيه المفردة الكبيرة: (${sampleWord})؟` 
+                : `In what context is the keyword (${sampleWord}) used in the article?`;
+            const q3Ans1 = isArabic ? `سياق داعم ومباشر لربط أفكار الموضوع` : `A supporting context directly related to the main topic`;
+            const q3Ans2 = isArabic ? `استخدام هامشي خارج نطاق الفكرة` : `An irrelevant context`;
+
+            // Sanitized Dynamic HTML Output to completely prevent XSS
+            bodyEl.innerHTML = `
+                <div class="glass p-4 rounded-xl border border-white/10 mb-3" dir="${isArabic ? 'rtl' : 'ltr'}">
+                    <p class="text-white font-semibold mb-2"><i class="fas fa-check-circle text-brand-accent mr-1"></i> Q1 (${isArabic ? 'تأكيد الحقيقة - نعم / لا' : 'Yes / No Fact Check'}): ${escapeHTML(q1Text)}</p>
+                    <div class="flex gap-6 mt-2 text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q1" value="yes"> ${isArabic ? 'نعم (Yes)' : 'Yes'}</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q1" value="no"> ${isArabic ? 'لا (No)' : 'No'}</label>
                     </div>
-                    <div class="glass p-4 rounded-xl border border-white/10">
-                        <p class="text-white font-semibold mb-2">Q2: Does this article apply to corporate training activities?</p>
-                        <div class="space-y-2 text-xs">
-                            <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q2" value="yes"> Yes, aligned with MH70 Marketing goals</label>
-                            <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q2" value="no"> No</label>
-                        </div>
+                </div>
+
+                <div class="glass p-4 rounded-xl border border-white/10 mb-3" dir="${isArabic ? 'rtl' : 'ltr'}">
+                    <p class="text-white font-semibold mb-2"><i class="fas fa-compress-alt text-brand-accent mr-1"></i> Q2 (${isArabic ? 'مهارة التلخيص' : 'Summarization'}): ${escapeHTML(q2Text)}</p>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q2" value="1"> ${escapeHTML(q2Ans1)}</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q2" value="2"> ${escapeHTML(q2Ans2)}</label>
                     </div>
-                `;
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
+                </div>
+
+                <div class="glass p-4 rounded-xl border border-white/10" dir="${isArabic ? 'rtl' : 'ltr'}">
+                    <p class="text-white font-semibold mb-2"><i class="fas fa-spell-check text-brand-accent mr-1"></i> Q3 (${isArabic ? 'معاني المفردات والسياق' : 'Vocabulary Context'}): ${escapeHTML(q3Text)}</p>
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q3" value="1"> ${escapeHTML(q3Ans1)}</label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-white"><input type="radio" name="q3" value="2"> ${escapeHTML(q3Ans2)}</label>
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
 
         function closeQuizModal() {
@@ -1164,24 +1205,46 @@
             `).join('');
         }
 
-        /* Fully Fortified Smart-Cached Article Engine */
+        /* Smart Context Image Matching Engine */
+        function getSmartContextImage(title, body, fileName) {
+            const text = (title + " " + body + " " + fileName).toLowerCase();
+
+            if (text.includes('pronoun') || text.includes('grammar') || text.includes('english') || text.includes('language') || text.includes('do-play-go') || text.includes('when-while')) {
+                return 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=500&q=70&format=webp';
+            }
+            if (text.includes('time') || text.includes('الأمل') || text.includes('التفاؤل') || text.includes('نشاطك') || text.includes('schedule') || text.includes('clock')) {
+                return 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&w=500&q=70&format=webp';
+            }
+            if (text.includes('wiper') || text.includes('invent') || text.includes('tech') || text.includes('cyber') || text.includes('digital') || text.includes('brains')) {
+                return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=500&q=70&format=webp';
+            }
+            if (text.includes('sustainab') || text.includes('environment') || text.includes('green') || text.includes('legacy')) {
+                return 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=500&q=70&format=webp';
+            }
+
+            return 'https://mh70marketing.com/book-cover.webp';
+        }
+
+        /* Exception-Safe Smart-Cached Article Fetch Engine */
         async function fetchArticles() {
             const grid = document.getElementById('news-grid');
             renderSkeletons();
 
-            // Check Browser Cache
-            const cachedData = localStorage.getItem(CACHE_KEY);
-            const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
-            const now = Date.now();
+            // Safe LocalStorage Cache Check
+            try {
+                const cachedData = localStorage.getItem(CACHE_KEY);
+                const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+                const now = Date.now();
 
-            if (cachedData && cachedTime && (now - cachedTime < CACHE_DURATION)) {
-                try {
+                if (cachedData && cachedTime && (now - Number(cachedTime) < CACHE_DURATION)) {
                     allArticles = JSON.parse(cachedData);
-                    renderArticles();
-                    return;
-                } catch(e) {
-                    localStorage.removeItem(CACHE_KEY);
+                    if (Array.isArray(allArticles) && allArticles.length > 0) {
+                        renderArticles();
+                        return;
+                    }
                 }
+            } catch (e) {
+                console.warn("LocalStorage unavailable:", e);
             }
 
             const paths = [
@@ -1216,13 +1279,20 @@
                         const text = await res.text();
                         
                         const decodedFileName = decodeURIComponent(file.name.replace('.md',''));
-                        const titleMatch = text.match(/title:\s*"(.*?)"/)||[null, decodedFileName];
-                        const imageMatch = text.match(/image:\s*"(.*?)"/);
+                        const titleMatch = text.match(/title:\s*["']?(.*?)["']?$/m)||[null, decodedFileName];
+                        const imageMatch = text.match(/(?:image|cover|thumbnail|featured_image):\s*["']?(.*?)["']?$/m);
                         const bodyText = text.replace(/---[\s\S]*?---/, '').trim();
 
-                        let imageUrl = 'https://picsum.photos/seed/' + encodeURIComponent(file.name) + '/400/250';
-                        if (imageMatch && imageMatch[1]) {
-                            imageUrl = imageMatch[1].startsWith('http') ? imageMatch[1] : 'https://raw.githubusercontent.com/MH70A/MH70MARKETINGPOSTS/main' + imageMatch[1];
+                        let imageUrl = getSmartContextImage(titleMatch[1], bodyText, file.name);
+
+                        if (imageMatch && imageMatch[1] && imageMatch[1].trim() !== '') {
+                            let cleanImgPath = imageMatch[1].trim();
+                            if (cleanImgPath.startsWith('http://') || cleanImgPath.startsWith('https://')) {
+                                imageUrl = cleanImgPath;
+                            } else {
+                                if (!cleanImgPath.startsWith('/')) cleanImgPath = '/' + cleanImgPath;
+                                imageUrl = 'https://raw.githubusercontent.com/MH70A/MH70MARKETINGPOSTS/main' + cleanImgPath;
+                            }
                         }
 
                         allArticles.push({
@@ -1235,10 +1305,14 @@
                     }
                 }
 
-                // Save to Cache
+                // Safe Cache Saving
                 if (allArticles.length > 0) {
-                    localStorage.setItem(CACHE_KEY, JSON.stringify(allArticles));
-                    localStorage.setItem(CACHE_TIME_KEY, now.toString());
+                    try {
+                        localStorage.setItem(CACHE_KEY, JSON.stringify(allArticles));
+                        localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+                    } catch (storageErr) {
+                        console.warn("Storage quota exceeded:", storageErr);
+                    }
                 }
 
                 renderArticles();
@@ -1266,7 +1340,7 @@
                 card.innerHTML = `
                     <div>
                         <div class="relative overflow-hidden rounded-xl mb-4 aspect-video bg-brand-card">
-                            <img src="${escapeHTML(art.image)}" alt="Article Cover" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://picsum.photos/400/250';">
+                            <img src="${escapeHTML(art.image)}" alt="Article Cover" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='https://mh70marketing.com/book-cover.webp';">
                         </div>
                         <h3 class="text-lg font-bold mb-2 text-white" dir="auto">${escapeHTML(art.title)}</h3>
                         <p class="text-brand-muted text-sm line-clamp-3 mb-4" dir="auto">${escapeHTML(art.body.substring(0, 150))}...</p>
